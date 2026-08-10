@@ -3,6 +3,11 @@ name: Release
 on:
   push:
     tags: ['v*']
+  # A fork does not run push-triggered workflows until GitHub's fork gate
+  # is cleared, so the release build is also drivable explicitly. Dispatch
+  # it with --ref <tag> so github.ref_name stays the tag the version check
+  # compares against.
+  workflow_dispatch:
 
 permissions:
   contents: write
