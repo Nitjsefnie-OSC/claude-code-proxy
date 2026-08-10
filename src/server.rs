@@ -1803,10 +1803,10 @@ fn monitor_response_body(response: Response, guard: RequestMonitorGuard) -> Resp
     // Stamped here rather than at each `return` because every response path in
     // this module funnels through this function, and it is applied to the parts
     // before the body is streamed, so a streaming SSE response carries it too.
-    if !parts.headers.contains_key(REQUEST_ID_HEADER) {
-        if let Ok(value) = http::HeaderValue::from_str(&guard.req_id) {
-            parts.headers.insert(REQUEST_ID_HEADER, value);
-        }
+    if !parts.headers.contains_key(REQUEST_ID_HEADER)
+        && let Ok(value) = http::HeaderValue::from_str(&guard.req_id)
+    {
+        parts.headers.insert(REQUEST_ID_HEADER, value);
     }
     let stream = futures_util::stream::unfold(
         (body, guard, outcome),
@@ -2164,7 +2164,7 @@ fn _unused(session_state: Option<&SessionState>) {
 
 #[cfg(test)]
 mod request_id_header_tests {
-    use super::{monitor_response_body, REQUEST_ID_HEADER, RequestMonitorGuard};
+    use super::{REQUEST_ID_HEADER, RequestMonitorGuard, monitor_response_body};
     use axum::body::Body;
     use axum::response::Response;
     use http::{HeaderValue, StatusCode};
@@ -2213,7 +2213,10 @@ mod request_id_header_tests {
     fn does_not_clobber_an_upstream_supplied_id() {
         let response = Response::builder()
             .status(StatusCode::OK)
-            .header(REQUEST_ID_HEADER, HeaderValue::from_static("upstream-owned"))
+            .header(
+                REQUEST_ID_HEADER,
+                HeaderValue::from_static("upstream-owned"),
+            )
             .body(Body::from("{}"))
             .unwrap();
         let stamped = monitor_response_body(response, guard("local-uuid"));
