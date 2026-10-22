@@ -41,6 +41,15 @@ jobs:
           fi
           printf 'checked-out SHA: %s\n' "$checked_out_sha"
 
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install tools
+        run: cargo install checkle just --locked
+
       - name: Format check
         if: always()
         run: just format
