@@ -1,0 +1,34 @@
+name: OSC adv Windows (OAuth browser launch regression)
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_ref:
+        description: 'Full 40-character commit SHA of the ref to test'
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  windows-oauth-browser-launch:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout target ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.target_ref }}
+
+      - name: Echo provenance
+        run: |
+          echo "target_ref=${{ inputs.target_ref }}"
+          git rev-parse HEAD
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Restore cargo cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Run targeted OAuth browser-launch regression tests
+        run: cargo test --lib oauth_browser_launch -- --nocapture
