@@ -41,14 +41,28 @@ jobs:
           fi
           printf 'checked-out SHA: %s\n' "$checked_out_sha"
 
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy, rustfmt
+      - name: Format check
+        if: always()
+        run: just format
 
-      - uses: Swatinem/rust-cache@v2
+      - name: Clippy
+        if: always()
+        run: just clippy
 
-      - name: Install tools
-        run: cargo install checkle just --locked
+      - name: Build
+        if: always()
+        run: just build
 
-      - name: Run full checks
-        run: just check-ci
+      - name: Test
+        if: always()
+        run: just test
+
+      - name: Clean-tree check
+        if: always()
+        run: |
+          set -euo pipefail
+          if ! git diff --quiet || ! git diff --cached --quiet; then
+            echo "Error: checks caused uncommitted changes"
+            git diff --stat
+            exit 1
+          fi
